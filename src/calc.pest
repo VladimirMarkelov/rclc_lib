@@ -1,0 +1,25 @@
+uint = @{ ASCII_DIGIT ~ ("_"? ~ ASCII_DIGIT)* }
+rawfloat = @{ uint* ~ ("." | "," ) ~ uint+ }
+fullfloat = @{ rawfloat ~ (^"e" ~ ("+" | "-")? ~ uint)? }
+WHITESPACE = _{ " " | "\t" }
+COMMENT = { "#" ~ ANY* }
+
+int = { uint }
+fulluint = @{ ASCII_DIGIT ~ ^"e" ~ "+"? ~ uint }
+hex = @{ "0" ~ ^"x" ~ ASCII_HEX_DIGIT+ }
+oct = @{ "0" ~ ^"o" ~ ASCII_OCT_DIGIT+ }
+bin = @{ "0" ~ ^"b" ~ ASCII_BIN_DIGIT+ }
+float = { fullfloat }
+ratio = { uint ~ "\\" ~ uint ~ ("\\" ~ uint)? }
+ident = @{ (LETTER | "_") ~ (LETTER  | ASCII_DIGIT | "_")* }
+complex = @{ ("-"? ~ (fullfloat|uint) ~ ("+" | "-") ~ (^"i"|^"j") ~ (fullfloat|uint)) | ("-"? ~ (fullfloat|uint) ~ ("+" | "-") ~ (fullfloat|uint) ~ (^"i"|^"j")) }
+fulldegree = @{ uint ~ (^"d" | "°") ~ (uint ~ (^"m" | "'")? ~ (rawfloat ~ (^"s" | "\"")?)?)? }
+degreefloat = @{ (rawfloat | uint) ~ (^"d" | "°") }
+
+open_b = { "(" }
+close_b = { ")" }
+arg_sep = { ";" }
+operator = { "//" | "%%" | "%/" | "**" | "+" | "-" | "/" | "*" | "^" | "&&" | "||" | "&" | "|" | "~" | "%" | "~" | "<<" | ">>" | "<=" | ">=" | "!=" | "==" | "!" | ">" | "<" }
+
+eoi = _{ !ANY }
+expr = _{ SOI ~ (ident | bin | hex | oct | fulldegree | degreefloat | ratio | complex | float | fulluint | int | open_b | close_b | arg_sep | operator)* ~ eoi }
