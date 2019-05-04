@@ -1,6 +1,6 @@
 ## What is it
 
-Mathematical expression evaluation library with big integers, floats, regular fractions, and complex numbers support.
+Mathematical expression evaluation library with big integers, floats, common fractions, and complex numbers support.
 The library is used by the project [RionaCalc](https://github.com/VladimirMarkelov/rclc)
 
 ## Features
@@ -12,7 +12,7 @@ The library is used by the project [RionaCalc](https://github.com/VladimirMarkel
 * Trigonometric functions work with radians and degrees. Bare numbers are treated as radians, degrees requires one or three suffixes. Two degrees formats: `20d30m50s` or `20°30'50"`. Minutes and seconds can be omitted, in this case degrees can be float number like `30.25d`. So, `sin(pi/2)` == `sin(90°)`
 * Every number can include group separator `_` for readability - it is very useful when using big integers. `3_000.90_23` == `3000.9023`
 * Both `.` and `,` are treated as decimal separators
-* Function argument separator is `;`. If a function receives more arguments than it requires, the trailing arguments are dropped: e.g, `sqrt(11;12;13)` is the same as `sqrt(11)` 
+* Function argument separator is `;`. If a function receives more arguments than it requires, the trailing arguments are dropped: e.g, `sqrt(11;12;13)` is the same as `sqrt(11)`
 * Regular fractions use `\` to separate its parts. They can be written with integer part or only with numerator and denominator, e.g `1\1\10` == `11\10`
 * Two complex numbers formats: with marker at the end or in the middle. E.g, `1+2i` == `1+i2`. In addition, `j` can be used instead of `i` - but the calculator outputs always with `i`
 * Hexadecimal(starts with `0x`), octal(starts with `0o`), and binary(starts with `0b`) numbers

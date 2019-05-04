@@ -496,7 +496,7 @@ impl Value {
 
     // --------------------------------
 
-    fn into_int(self) -> CalcResult {
+    pub(crate) fn into_int(self) -> CalcResult {
         match self {
             Value::Int(..) => Ok(self),
             Value::Float(f) => {
@@ -511,7 +511,7 @@ impl Value {
         }
     }
 
-    fn into_float(self) -> CalcResult {
+    pub(crate) fn into_float(self) -> CalcResult {
         match self {
             Value::Int(i) => {
                 let f = int_to_f64(&i)?;
@@ -526,7 +526,7 @@ impl Value {
         }
     }
 
-    fn into_ratio(self) -> CalcResult {
+    pub(crate) fn into_ratio(self) -> CalcResult {
         match self {
             Value::Ratio(..) => Ok(self),
             Value::Int(i) => Ok(Value::Ratio(BigRational::from_integer(i))),
@@ -541,7 +541,7 @@ impl Value {
         }
     }
 
-    fn into_complex(self) -> CalcResult {
+    pub(crate) fn into_complex(self) -> CalcResult {
         match self {
             Value::Complex(..) => Ok(self),
             Value::Float(f) => Ok(Value::Complex(Complex::new(f, 0.0))),
@@ -1090,7 +1090,7 @@ impl Value {
     /// Returns cubic root of a number.
     pub fn cbrt(self) -> CalcResult {
         match &self {
-            Value::Complex(..) => self.power(Value::Float(1.0f64/3.0f64)),
+            Value::Complex(..) => self.power(Value::Float(1.0f64 / 3.0f64)),
             Value::Ratio(r) => {
                 let f = ratio_to_f64(r)?;
                 Ok(Value::Float(f.cbrt()))
@@ -1354,6 +1354,40 @@ impl Value {
         }
 
         Ok(Value::Int(v1 / gcd * v2))
+    }
+
+    /// Is Value a prime number. Returns error if a value is not integer
+    /// Naive and slow algorithm for large integers
+    pub fn is_prime(self) -> CalcResult {
+        let v = self.abs()?;
+        let v = if let Value::Int(i) = v {
+            i
+        } else {
+            return Err(CalcError::OnlyInt("is_prime".to_string()));
+        };
+
+        let res = if v <= BigInt::one() {
+            Value::Int(BigInt::zero())
+        } else if v > BigInt::one() && v < BigInt::from(4) {
+            Value::Int(BigInt::one())
+        } else {
+            if v.clone() % BigInt::from(2) == BigInt::zero() {
+                Value::Int(BigInt::zero())
+            } else {
+                let upto = v.clone().sqrt();
+                let mut curr = BigInt::from(3);
+                let mut r = BigInt::one();
+                while curr <= upto {
+                    if v.clone() % curr.clone() == BigInt::zero() {
+                        r = BigInt::zero();
+                        break;
+                    }
+                    curr = curr + BigInt::from(2);
+                }
+                Value::Int(r)
+            }
+        };
+        Ok(res)
     }
 }
 

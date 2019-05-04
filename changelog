@@ -1,3 +1,16 @@
+rcalclib (0.9.1) unstable; urgency=medium
+
+  * function ratio can create a common fraction from two integers: numerator
+    and denominator. Example: ratio(2;5) = 2\5
+
+  * functions min and max to return minimum and maximum value from the list of
+    arbitrary length
+
+  * functions is_prime and next_prime: work only with integers and use naive
+    algorithm that makes them slow for big numbers
+
+ -- Vladimir Markelov <vmatroskin@gmail.com>  S
+
 rcalclib (0.9.0) unstable; urgency=medium
 
   * New functions: fib(N-th Fibonacci number), cbrt(cubic root)

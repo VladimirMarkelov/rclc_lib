@@ -1,6 +1,7 @@
 use std::f64::consts;
 
 use num_bigint::BigInt;
+use num_rational::BigRational;
 use num_traits::{One, Zero};
 
 use crate::errors::*;
@@ -29,9 +30,46 @@ pub(crate) const UNARY_MINUS: &str = "---";
 
 lazy_static! {
     pub(crate) static ref STD_FUNCS: Vec<&'static str> = [
-        "sqr", "sqrt", "cbrt", "exp", "ln", "abs", "signum", "round", "ceil", "trunc", "floor", "ratio", "sin", "cos", "tan",
-        "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "norm", "conj", "im", "re", "fract",
-        "iif", "gcd", "lcm", "deg", "rad", "fib",
+        "sqr",
+        "sqrt",
+        "cbrt",
+        "exp",
+        "ln",
+        "abs",
+        "signum",
+        "round",
+        "ceil",
+        "trunc",
+        "floor",
+        "ratio",
+        "sin",
+        "cos",
+        "tan",
+        "asin",
+        "acos",
+        "atan",
+        "sinh",
+        "cosh",
+        "tanh",
+        "asinh",
+        "acosh",
+        "atanh",
+        "norm",
+        "conj",
+        "im",
+        "re",
+        "fract",
+        "iif",
+        "gcd",
+        "lcm",
+        "deg",
+        "rad",
+        "fib",
+        "min",
+        "max",
+        "avg",
+        "is_prime",
+        "next_prime",
     ]
     .to_vec();
 }
@@ -385,6 +423,11 @@ impl Stack {
             "deg" => self.deg(args),
             "rad" => self.rad(args),
             "fib" => self.fib(args),
+            "min" => self.min(args),
+            "max" => self.max(args),
+            "avg" => self.avg(args),
+            "is_prime" => self.is_prime(args),
+            "next_prime" => self.next_prime(args),
             _ => Err(CalcError::InvalidOp(fname.to_string())),
         }
     }
@@ -445,7 +488,6 @@ impl Stack {
     function_op!(exp);
     function_op!(ln);
     function_op!(signum);
-    function_op!(ratio);
 
     fn iif(&mut self, args: usize) -> CalcErrorResult {
         if args < 3 || self.values.len() < 3 {
@@ -561,6 +603,133 @@ impl Stack {
             }
             _ => Err(CalcError::OnlyInt("fib".to_string())),
         }
+    }
+
+    fn ratio(&mut self, args: usize) -> CalcErrorResult {
+        if args == 0 {
+            return Err(CalcError::FunctionNoArgs("ratio".to_string()));
+        }
+        if self.values.len() < args {
+            return Err(CalcError::FunctionUnfinished("ratio".to_string()));
+        }
+
+        if args == 2 {
+            let v2 = self.values.pop().unwrap();
+            let v1 = self.values.pop().unwrap();
+            let v1 = v1.into_raw_big_int()?;
+            let v2 = v2.into_raw_big_int()?;
+            self.values.push(Value::Ratio(BigRational::new(v1, v2)));
+            return Ok(());
+        }
+
+        let mut v = self.values.pop().unwrap();
+        for _i in 0..args - 1 {
+            v = self.values.pop().unwrap();
+        }
+        let v = v.ratio()?;
+        self.values.push(v);
+        Ok(())
+    }
+
+    fn min_max<F>(&mut self, args: usize, fname: &'static str, f: F) -> CalcErrorResult
+    where
+        F: Fn(Value, Value) -> Value,
+    {
+        if args == 0 || self.values.is_empty() {
+            return Err(CalcError::FunctionNoArgs(fname.to_string()));
+        }
+
+        let mut v = self.values.pop().unwrap();
+        for _i in 1..args {
+            let cmp = self.values.pop().unwrap();
+            v = f(v, cmp);
+        }
+        self.values.push(v);
+        Ok(())
+    }
+
+    fn min(&mut self, args: usize) -> CalcErrorResult {
+        self.min_max(args, "min", |v1, v2| {
+            let r = if let Ok(v) = v1.clone().less(v2.clone()) {
+                v
+            } else {
+                Value::Int(BigInt::zero())
+            };
+            if r.is_zero() {
+                v2
+            } else {
+                v1
+            }
+        })
+    }
+
+    fn max(&mut self, args: usize) -> CalcErrorResult {
+        self.min_max(args, "max", |v1, v2| {
+            let r = if let Ok(v) = v1.clone().greater(v2.clone()) {
+                v
+            } else {
+                Value::Int(BigInt::zero())
+            };
+            if r.is_zero() {
+                v2
+            } else {
+                v1
+            }
+        })
+    }
+
+    fn avg(&mut self, args: usize) -> CalcErrorResult {
+        if args < 2 || self.values.len() < 2 {
+            return Ok(());
+        }
+
+        let mut v = self.values.pop().unwrap();
+        for _i in 1..args {
+            let a = self.values.pop().unwrap();
+            v = v.addition(a)?;
+        }
+        let av = Value::Int(BigInt::from(args));
+        v = v.divide(av)?;
+        self.values.push(v);
+        Ok(())
+    }
+
+    fn is_prime(&mut self, args: usize) -> CalcErrorResult {
+        if args == 0 || self.values.is_empty() {
+            return Err(CalcError::FunctionNoArgs("is_prime".to_string()));
+        }
+        for _i in 0..args - 1 {
+            let _ = self.values.pop().unwrap();
+        }
+
+        let v = self.values.pop().unwrap();
+        let res = v.is_prime()?;
+        self.values.push(res);
+        Ok(())
+    }
+
+    fn next_prime(&mut self, args: usize) -> CalcErrorResult {
+        if args == 0 || self.values.is_empty() {
+            return Err(CalcError::FunctionNoArgs("is_prime".to_string()));
+        }
+        for _i in 0..args - 1 {
+            let _ = self.values.pop().unwrap();
+        }
+
+        let v = self.values.pop().unwrap();
+        let mut v = v.into_raw_big_int()?;
+        if v.clone() % BigInt::from(2) == BigInt::zero() {
+            v = v + BigInt::one();
+        }
+        loop {
+            let res = Value::Int(v.clone()).is_prime()?;
+            if !res.is_zero() {
+                break;
+            }
+            v = v + BigInt::from(2);
+        }
+        self.values.push(Value::Int(v));
+        Ok(())
     }
 }
 
