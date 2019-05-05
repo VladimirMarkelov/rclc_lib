@@ -22,6 +22,8 @@ pub(crate) struct Stack {
     pub(crate) output: Vec<Entry>,
     values: Vec<Value>,
     pub result: Value,
+    pub(crate) has_alt: bool,
+    pub(crate) alt_result: String,
 }
 
 const PRI_IMMEDIATE: i32 = 99;
@@ -70,6 +72,9 @@ lazy_static! {
         "avg",
         "is_prime",
         "next_prime",
+        "hex",
+        "oct",
+        "bin",
     ]
     .to_vec();
 }
@@ -263,6 +268,8 @@ impl Stack {
             output: Vec::new(),
             values: Vec::new(),
             result: Value::Float(0.0),
+            has_alt: false,
+            alt_result: "".to_owned(),
         }
     }
 
@@ -332,6 +339,7 @@ impl Stack {
         self.values = Vec::new();
 
         for i in 0..self.output.len() {
+            self.has_alt = false;
             let o = self.output[i].clone();
             match o {
                 Entry::Val(v) => {
@@ -426,8 +434,11 @@ impl Stack {
             "min" => self.min(args),
             "max" => self.max(args),
             "avg" => self.avg(args),
-            "is_prime" => self.is_prime(args),
+            "is_prime" => self.prime(args),
             "next_prime" => self.next_prime(args),
+            "hex" => self.hex(args),
+            "oct" => self.oct(args),
+            "bin" => self.bin(args),
             _ => Err(CalcError::InvalidOp(fname.to_string())),
         }
     }
@@ -694,7 +705,7 @@ impl Stack {
         Ok(())
     }
 
-    fn is_prime(&mut self, args: usize) -> CalcErrorResult {
+    fn prime(&mut self, args: usize) -> CalcErrorResult {
         if args == 0 || self.values.is_empty() {
             return Err(CalcError::FunctionNoArgs("is_prime".to_string()));
         }
@@ -703,7 +714,7 @@ impl Stack {
         }
 
         let v = self.values.pop().unwrap();
-        let res = v.is_prime()?;
+        let res = v.prime()?;
         self.values.push(res);
         Ok(())
     }
@@ -717,19 +728,53 @@ impl Stack {
         }
 
         let v = self.values.pop().unwrap();
-        let mut v = v.into_raw_big_int()?;
+        let v = v.into_raw_big_int()?;
+        let mut v = v + BigInt::one();
         if v.clone() % BigInt::from(2) == BigInt::zero() {
-            v = v + BigInt::one();
+            v += BigInt::one();
         }
         loop {
-            let res = Value::Int(v.clone()).is_prime()?;
+            let res = Value::Int(v.clone()).prime()?;
             if !res.is_zero() {
                 break;
             }
-            v = v + BigInt::from(2);
+            v += BigInt::from(2);
         }
         self.values.push(Value::Int(v));
         Ok(())
+    }
+
+    fn int_to_base(&mut self, args: usize, base: u32, prefix: &str) -> CalcErrorResult {
+        if base < 2 || base > 36 {
+            return Err(CalcError::InvalidAgrument("to_base".to_string(), "base".to_string()));
+        }
+        if args == 0 || self.values.is_empty() {
+            return Err(CalcError::FunctionNoArgs("hex".to_string()));
+        }
+        for _i in 0..args - 1 {
+            let _ = self.values.pop().unwrap();
+        }
+
+        let v = self.values.pop().unwrap();
+
+        let vi = v.clone().into_raw_big_int()?;
+        self.has_alt = true;
+        self.alt_result = format!("{}{}", prefix, vi.to_str_radix(base));
+
+        self.values.push(v);
+        Ok(())
+    }
+
+    fn hex(&mut self, args: usize) -> CalcErrorResult {
+        self.int_to_base(args, 16u32, "0x")
+    }
+
+    fn oct(&mut self, args: usize) -> CalcErrorResult {
+        self.int_to_base(args, 8u32, "0o")
+    }
+
+    fn bin(&mut self, args: usize) -> CalcErrorResult {
+        self.int_to_base(args, 2u32, "0b")
     }
 }
 

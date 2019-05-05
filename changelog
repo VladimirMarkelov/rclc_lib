@@ -9,6 +9,8 @@ rcalclib (0.9.1) unstable; urgency=medium
   * functions is_prime and next_prime: work only with integers and use naive
     algorithm that makes them slow for big numbers
 
+  * functions hex, oct, and bin to print an integer in non-decimal format
+
  -- Vladimir Markelov <vmatroskin@gmail.com>  S
 
 rcalclib (0.9.0) unstable; urgency=medium

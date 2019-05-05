@@ -1358,7 +1358,7 @@ impl Value {
 
     /// Is Value a prime number. Returns error if a value is not integer
     /// Naive and slow algorithm for large integers
-    pub fn is_prime(self) -> CalcResult {
+    pub fn prime(self) -> CalcResult {
         let v = self.abs()?;
         let v = if let Value::Int(i) = v {
             i
@@ -1370,22 +1370,20 @@ impl Value {
             Value::Int(BigInt::zero())
         } else if v > BigInt::one() && v < BigInt::from(4) {
             Value::Int(BigInt::one())
+        } else if v.clone() % BigInt::from(2) == BigInt::zero() {
+            Value::Int(BigInt::zero())
         } else {
-            if v.clone() % BigInt::from(2) == BigInt::zero() {
-                Value::Int(BigInt::zero())
-            } else {
-                let upto = v.clone().sqrt();
-                let mut curr = BigInt::from(3);
-                let mut r = BigInt::one();
-                while curr <= upto {
-                    if v.clone() % curr.clone() == BigInt::zero() {
-                        r = BigInt::zero();
-                        break;
-                    }
-                    curr = curr + BigInt::from(2);
+            let upto = v.clone().sqrt();
+            let mut curr = BigInt::from(3);
+            let mut r = BigInt::one();
+            while curr <= upto {
+                if v.clone() % curr.clone() == BigInt::zero() {
+                    r = BigInt::zero();
+                    break;
                 }
-                Value::Int(r)
+                curr += BigInt::from(2);
             }
+            Value::Int(r)
         };
         Ok(res)
     }

@@ -32,10 +32,11 @@ impl Variable {
 
 /// holds the current state of the engine, e.g list of all previously used variables
 pub struct CalcState {
-    // TODO: slow
     variables: Vec<Variable>,
     is_last_value: bool,
     is_last_func: bool,
+    pub has_alt: bool,
+    pub alt_result: String,
 }
 
 impl Default for CalcState {
@@ -44,6 +45,8 @@ impl Default for CalcState {
             variables: Vec::new(),
             is_last_value: false,
             is_last_func: false,
+            has_alt: true,
+            alt_result: "".to_owned(),
         }
     }
 }
@@ -161,6 +164,7 @@ pub fn eval(expr: &str, state: &mut CalcState) -> CalcResult {
 
     state.is_last_value = false;
     state.is_last_func = false;
+    state.has_alt = false;
 
     let mut stk = Stack::new();
     for pair in pairs {
@@ -261,6 +265,10 @@ pub fn eval(expr: &str, state: &mut CalcState) -> CalcResult {
     let output = stk.calculate();
     if let Ok(ref v) = output {
         state.add_variable(LAST_RESULT, v.clone());
+        if stk.has_alt {
+            state.has_alt = true;
+            state.alt_result = stk.alt_result;
+        }
     }
     output
 }
