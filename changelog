@@ -6,6 +6,8 @@ rcalclib (0.9.1) unstable; urgency=medium
   * functions min and max to return minimum and maximum value from the list of
     arbitrary length
 
+  * functions avg to calculate average of a list of values
+
   * functions is_prime and next_prime: work only with integers and use naive
     algorithm that makes them slow for big numbers
 
