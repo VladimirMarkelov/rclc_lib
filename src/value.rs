@@ -1153,6 +1153,11 @@ impl Value {
             (.., Value::Float(..)) => {
                 let f1 = self.into_raw_f64()?;
                 let f2 = rhs.into_raw_f64()?;
+                if f1 < 0.0 {
+                    let c1 = Complex::new(f1, 0.0);
+                    let c2 = Complex::new(f2, 0.0);
+                    return Ok(Value::Complex(c1.powc(c2)));
+                }
                 let f1 = Value::Float(f1.powf(f2));
                 if Value::is_like_int(&f1) {
                     return Value::into_int(f1);
