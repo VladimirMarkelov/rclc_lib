@@ -75,6 +75,7 @@ lazy_static! {
         "hex",
         "oct",
         "bin",
+        "gamma",
     ]
     .to_vec();
 }
@@ -439,6 +440,7 @@ impl Stack {
             "hex" => self.hex(args),
             "oct" => self.oct(args),
             "bin" => self.bin(args),
+            "gamma" => self.gamma(args),
             _ => Err(CalcError::InvalidOp(fname.to_string())),
         }
     }
@@ -775,6 +777,56 @@ impl Stack {
 
     fn bin(&mut self, args: usize) -> CalcErrorResult {
         self.int_to_base(args, 2u32, "0b")
+    }
+
+    fn gamma(&mut self, args: usize) -> CalcErrorResult {
+        if args == 0 || self.values.is_empty() {
+            return Err(CalcError::FunctionNoArgs("gamma".to_string()));
+        }
+        for _i in 0..args - 1 {
+            let _ = self.values.pop().unwrap();
+        }
+
+        let v = self.values.pop().unwrap();
+        if v.is_zero() {
+            return Err(CalcError::InvalidAgrument("gamma".to_string(), "0".to_string()));
+        }
+
+        // arbitrary number of steps. It seems a number between 18-30 gives the
+        // best accuracy for f64
+        const STEPS: usize = 19;
+
+        // https://en.wikipedia.org/wiki/Spouge%27s_approximation
+        let mut sum = Value::Float((2.0f64 * consts::PI).sqrt());
+        let mut d = Value::Float(1.0f64);
+        let mut do_neg = false;
+        for k in 1..STEPS {
+            let a = Value::Int(BigInt::from(STEPS - k));
+            let a = a.power(Value::Float(k as f64 - 0.5f64))?;
+            let e = Value::Float((STEPS - k) as f64).exp()?;
+            let e = e.divide(d.clone())?;
+            let a = a.multiply(e)?;
+            let adder = Value::Float(k as f64).addition(v.clone())?;
+            let a = a.divide(adder)?;
+            if do_neg {
+                sum = sum.clone().subtract(a)?;
+            } else {
+                sum = sum.clone().addition(a)?;
+            }
+            d = d.multiply(Value::Float(k as f64))?;
+            do_neg = !do_neg;
+        }
+        let m1 = Value::Float(STEPS as f64).addition(v.clone())?;
+        let pwr = v.clone().addition(Value::Float(0.5f64))?;
+        let m1 = m1.power(pwr)?;
+        let m2 = Value::Float(-(STEPS as f64)).subtract(v.clone())?;
+        let m2 = m2.exp()?;
+
+        let res = m1.multiply(m2)?;
+        let res = res.multiply(sum)?;
+
+        self.values.push(res);
+        Ok(())
     }
 }
 

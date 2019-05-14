@@ -1,3 +1,12 @@
+rcalclib (0.9.2) unstable; urgency=medium
+
+  * Fix raising negative float number into non-integer power degree
+
+  * New function: gamma. The calculation is approximate, its accuracy for
+    integer results that fit f64(argument < 20) is around +/- 0.000000001%
+
+ -- Vladimir Markelov <vmatroskin@gmail.com>  Mon, 13 May 2019 20:22:51 -0700
+
 rcalclib (0.9.1) unstable; urgency=medium
 
   * function ratio can create a common fraction from two integers: numerator
