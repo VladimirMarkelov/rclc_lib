@@ -800,6 +800,16 @@ impl Value {
         }
     }
 
+    /// Returns true if the value is zero or greater
+    pub fn is_positive(&self) -> bool {
+        match self {
+            Value::Int(ref i) => *i >= BigInt::zero() ,
+            Value::Float(ref f) => *f >= 0.0f64,
+            Value::Ratio(ref r) => *r >= BigRational::zero(),
+            Value::Complex(ref c) => c.re >= 0.0f64,
+        }
+    }
+
     // to check any value after any operation whether it can be converted
     // to BigInt
     fn is_like_int(&self) -> bool {

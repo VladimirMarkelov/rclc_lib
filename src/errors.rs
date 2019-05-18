@@ -38,6 +38,7 @@ pub enum CalcError {
     InsufficientOps,
     VarUndeclared(String),
 
+    NoRoots,
     ParseFailed(String),
 
     Unreachable,
@@ -82,6 +83,7 @@ impl fmt::Display for CalcError {
             CalcError::EmptyExpression => write!(f, "Nothing to calculate"),
             CalcError::InsufficientOps => write!(f, "Too many numbers"),
 
+            CalcError::NoRoots => write!(f, "Equation has no roots"),
             CalcError::ParseFailed(s) => write!(f, "Failed to parse expression: {}", s),
             CalcError::VarUndeclared(s) => write!(f, "Variable '{}' not found", s),
 
@@ -129,6 +131,7 @@ impl fmt::Debug for CalcError {
             CalcError::EmptyExpression => write!(f, "Nothing to calculate"),
             CalcError::InsufficientOps => write!(f, "Too many numbers"),
 
+            CalcError::NoRoots => write!(f, "Equation has no roots"),
             CalcError::ParseFailed(s) => write!(f, "Failed to parse expression: {}", s),
             CalcError::VarUndeclared(s) => write!(f, "Variable '{}' not found", s),
 

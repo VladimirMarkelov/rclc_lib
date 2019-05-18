@@ -76,6 +76,9 @@ lazy_static! {
         "oct",
         "bin",
         "gamma",
+        "solve",
+        "zeroes",
+        "roots",
     ]
     .to_vec();
 }
@@ -441,6 +444,7 @@ impl Stack {
             "oct" => self.oct(args),
             "bin" => self.bin(args),
             "gamma" => self.gamma(args),
+            "solve" | "zeroes" | "roots" => self.solve(args),
             _ => Err(CalcError::InvalidOp(fname.to_string())),
         }
     }
@@ -827,6 +831,85 @@ impl Stack {
 
         self.values.push(res);
         Ok(())
+    }
+
+    fn solve(&mut self, args: usize) -> CalcErrorResult {
+        if args < 2 || self.values.is_empty() {
+            return Err(CalcError::FunctionNotEnoughArgs("solve".to_string(), 2));
+        }
+
+        // linear
+        if args == 2 {
+            let c = self.values.pop().unwrap();
+            let x = self.values.pop().unwrap();
+            if x.is_zero() {
+                if !c.is_zero() {
+                    return Err(CalcError::NoRoots);
+                }
+
+                self.values.push(Value::Int(BigInt::from(0)));
+                return Ok(());
+            }
+
+            self.has_alt = true;
+            let cstr = if c.is_positive() {
+                format!("+{}", c)
+            } else {
+                format!("{}", c)
+            };
+            let r = c.divide(x.clone())?;
+            self.has_alt = true;
+            self.alt_result = format!("{}*x{}=0, x={}", x, cstr, r);
+            self.values.push(r);
+
+            return Ok(());
+        }
+
+        // square
+        for _i in 0..args - 3 {
+            let _ = self.values.pop().unwrap();
+        }
+        let c = self.values.pop().unwrap();
+        let b = self.values.pop().unwrap();
+        let a = self.values.pop().unwrap();
+        if a.is_zero() {
+            return Err(CalcError::NoRoots);
+        }
+
+        let d1 = b.clone().sqr()?;
+        let d2 = Value::Int(BigInt::from(4)).multiply(a.clone())?;
+        let d2 = d2.multiply(c.clone())?;
+        let d = d1.subtract(d2)?;
+        let d = d.sqrt()?;
+        let q = if b.is_positive() {
+            let t = b.clone().negate()?;
+            t.subtract(d.clone())?
+        } else {
+            let t = b.clone().negate()?;
+            t.addition(d.clone())?
+        };
+        let q = q.divide(Value::Int(BigInt::from(2)))?;
+        let x1 = q.clone().divide(a.clone())?;
+        let x2 = c.clone().divide(q)?;
+        let bstr = if b.is_positive() {
+            format!("+{}", b)
+        } else {
+            format!("{}", b)
+        };
+        let cstr = if c.is_positive() {
+            format!("+{}", c)
+        } else {
+            format!("{}", c)
+        };
+        if d.is_zero() {
+            self.has_alt = true;
+            self.alt_result = format!("{}*x**2{}*x{}=0, x={}", a, bstr, cstr, x1);
+        } else {
+            self.has_alt = true;
+            self.alt_result = format!("{}*x**2{}*x{}=0, x1={}, x2={}", a, bstr, cstr, x1, x2);
+        }
+        self.values.push(x1);
+        return Ok(());
     }
 }
 
