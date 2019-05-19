@@ -909,7 +909,7 @@ impl Stack {
             self.alt_result = format!("{}*x**2{}*x{}=0, x1={}, x2={}", a, bstr, cstr, x1, x2);
         }
         self.values.push(x1);
-        return Ok(());
+        Ok(())
     }
 }
 

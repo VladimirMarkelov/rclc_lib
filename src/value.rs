@@ -803,7 +803,7 @@ impl Value {
     /// Returns true if the value is zero or greater
     pub fn is_positive(&self) -> bool {
         match self {
-            Value::Int(ref i) => *i >= BigInt::zero() ,
+            Value::Int(ref i) => *i >= BigInt::zero(),
             Value::Float(ref f) => *f >= 0.0f64,
             Value::Ratio(ref r) => *r >= BigRational::zero(),
             Value::Complex(ref c) => c.re >= 0.0f64,
@@ -1064,7 +1064,7 @@ impl Value {
                 if *r >= BigRational::zero() {
                     let n1 = r.numer().sqrt();
                     let d1 = r.denom().sqrt();
-                    if n1.clone()*n1.clone() == *r.numer() && d1.clone()*d1.clone() == *r.denom() {
+                    if n1.clone() * n1.clone() == *r.numer() && d1.clone() * d1.clone() == *r.denom() {
                         return Ok(Value::Ratio(BigRational::new(n1, d1)));
                     }
                 }
