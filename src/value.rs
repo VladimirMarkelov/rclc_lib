@@ -1061,6 +1061,13 @@ impl Value {
         match &self {
             Value::Complex(c) => Ok(Value::Complex(c.sqrt())),
             Value::Ratio(r) => {
+                if *r >= BigRational::zero() {
+                    let n1 = r.numer().sqrt();
+                    let d1 = r.denom().sqrt();
+                    if n1.clone()*n1.clone() == *r.numer() && d1.clone()*d1.clone() == *r.denom() {
+                        return Ok(Value::Ratio(BigRational::new(n1, d1)));
+                    }
+                }
                 let f = ratio_to_f64(r)?;
                 if f >= 0.0 {
                     Ok(Value::Float(f.sqrt()))
