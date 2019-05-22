@@ -833,6 +833,55 @@ impl Stack {
         Ok(())
     }
 
+    // internal fn
+    fn solve2(&mut self) -> CalcErrorResult {
+        let c = self.values.pop().unwrap();
+        let b = self.values.pop().unwrap();
+        let a = self.values.pop().unwrap();
+        if a.is_zero() {
+            return Err(CalcError::NoRoots);
+        }
+
+        let d1 = b.clone().sqr()?;
+        let d2 = Value::Int(BigInt::from(4)).multiply(a.clone())?;
+        let d2 = d2.multiply(c.clone())?;
+        let d = d1.subtract(d2)?;
+        let d = d.sqrt()?;
+        let q = if b.is_positive() {
+            let t = b.clone().negate()?;
+            t.subtract(d.clone())?
+        } else {
+            let t = b.clone().negate()?;
+            t.addition(d.clone())?
+        };
+        let q = q.divide(Value::Int(BigInt::from(2)))?;
+        let x1 = q.clone().divide(a.clone())?;
+        let x2 = if q.is_zero() {
+            Value::Float(0.0f64)
+        } else {
+            c.clone().divide(q.clone())?
+        };
+        let bstr = if b.is_positive() {
+            format!("+{}", b)
+        } else {
+            format!("{}", b)
+        };
+        let cstr = if c.is_positive() {
+            format!("+{}", c)
+        } else {
+            format!("{}", c)
+        };
+        if d.is_zero() || q.is_zero() {
+            self.has_alt = true;
+            self.alt_result = format!("{}*x**2{}*x{}=0, x={}", a, bstr, cstr, x1);
+        } else {
+            self.has_alt = true;
+            self.alt_result = format!("{}*x**2{}*x{}=0, x1={}, x2={}", a, bstr, cstr, x1, x2);
+        }
+        self.values.push(x1);
+        Ok(())
+    }
+
     fn solve(&mut self, args: usize) -> CalcErrorResult {
         if args < 2 || self.values.is_empty() {
             return Err(CalcError::FunctionNotEnoughArgs("solve".to_string(), 2));
@@ -869,47 +918,7 @@ impl Stack {
         for _i in 0..args - 3 {
             let _ = self.values.pop().unwrap();
         }
-        let c = self.values.pop().unwrap();
-        let b = self.values.pop().unwrap();
-        let a = self.values.pop().unwrap();
-        if a.is_zero() {
-            return Err(CalcError::NoRoots);
-        }
-
-        let d1 = b.clone().sqr()?;
-        let d2 = Value::Int(BigInt::from(4)).multiply(a.clone())?;
-        let d2 = d2.multiply(c.clone())?;
-        let d = d1.subtract(d2)?;
-        let d = d.sqrt()?;
-        let q = if b.is_positive() {
-            let t = b.clone().negate()?;
-            t.subtract(d.clone())?
-        } else {
-            let t = b.clone().negate()?;
-            t.addition(d.clone())?
-        };
-        let q = q.divide(Value::Int(BigInt::from(2)))?;
-        let x1 = q.clone().divide(a.clone())?;
-        let x2 = c.clone().divide(q)?;
-        let bstr = if b.is_positive() {
-            format!("+{}", b)
-        } else {
-            format!("{}", b)
-        };
-        let cstr = if c.is_positive() {
-            format!("+{}", c)
-        } else {
-            format!("{}", c)
-        };
-        if d.is_zero() {
-            self.has_alt = true;
-            self.alt_result = format!("{}*x**2{}*x{}=0, x={}", a, bstr, cstr, x1);
-        } else {
-            self.has_alt = true;
-            self.alt_result = format!("{}*x**2{}*x{}=0, x1={}, x2={}", a, bstr, cstr, x1, x2);
-        }
-        self.values.push(x1);
-        Ok(())
+        self.solve2()
     }
 }
 

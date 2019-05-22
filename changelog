@@ -5,7 +5,7 @@ rcalclib (0.9.3) unstable; urgency=medium
   * New function: solve(aliases: 'zeros' and 'roots') calculates roots of
     linear or quadratic eqaution. The result is the first root.
 
- -- Vladimir Markelov <vmatroskin@gmail.com>  M
+ -- Vladimir Markelov <vmatroskin@gmail.com>  Tue, 21 May 2019 19:41:51 -0700
 
 rcalclib (0.9.2) unstable; urgency=medium
 

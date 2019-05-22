@@ -4,3 +4,4 @@ Cargo.lock
 *.rar
 *.zip
 *.swp
+*.*~
