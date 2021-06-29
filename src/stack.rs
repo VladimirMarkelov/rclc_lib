@@ -28,6 +28,10 @@ pub(crate) struct Stack {
 
 const PRI_IMMEDIATE: i32 = 99;
 pub(crate) const FACTORIAL: &str = "!!!";
+pub(crate) const PERCENT_ADD: &str = "+%%";
+pub(crate) const PERCENT_SUB: &str = "-%%";
+pub(crate) const PERCENT_MUL: &str = "*%%";
+pub(crate) const PERCENT_DIV: &str = "/%%";
 pub(crate) const UNARY_MINUS: &str = "---";
 
 lazy_static! {
@@ -95,7 +99,7 @@ macro_rules! one_arg_op {
             self.values.push(v);
             Ok(())
         }
-    }
+    };
 }
 macro_rules! two_arg_op {
     ($id:ident) => {
@@ -110,7 +114,7 @@ macro_rules! two_arg_op {
             self.values.push(v);
             Ok(())
         }
-    }
+    };
 }
 macro_rules! function_op {
     ($id:ident) => {
@@ -124,31 +128,32 @@ macro_rules! function_op {
 
             // TODO: the func in the macro uses only one argument: the first
             let mut v = self.values.pop().unwrap();
-            for _i in 0..args-1 {
+            for _i in 0..args - 1 {
                 v = self.values.pop().unwrap();
             }
             let v = v.$id()?;
             self.values.push(v);
             Ok(())
         }
-    }
+    };
 }
 
 impl Stack {
     fn priority(op: &str) -> (i32, bool) {
         match op {
-            FACTORIAL => (PRI_IMMEDIATE, false),                 // immediate - factorial
-            UNARY_MINUS | "~" | "!" => (20, true),               // negate, bit NOT
-            "**" => (17, true),                                  // power
-            "<<" | ">>" => (15, false),                          // bit shifts
-            "*" | "/" | "//" | "%" => (12, false),               // mult, div, int div, mod
-            "+" | "-" => (8, false),                             // add, sub
-            "&" | "^" => (7, false),                             // bit AND/XOR
-            "|" => (5, false),                                   // bit OR
-            "&&" => (4, false),                                  // bit AND
-            "||" => (3, false),                                  // bit AND
+            FACTORIAL => (PRI_IMMEDIATE, false),   // immediate - factorial
+            UNARY_MINUS | "~" | "!" => (20, true), // negate, bit NOT
+            PERCENT_ADD | PERCENT_SUB | PERCENT_MUL | PERCENT_DIV => (19, false), // percent operations
+            "**" => (17, true),                    // power
+            "<<" | ">>" => (15, false),            // bit shifts
+            "*" | "/" | "//" | "%" => (12, false), // mult, div, int div, mod
+            "+" | "-" => (8, false),               // add, sub
+            "&" | "^" => (7, false),               // bit AND/XOR
+            "|" => (5, false),                     // bit OR
+            "&&" => (4, false),                    // bit AND
+            "||" => (3, false),                    // bit AND
             "==" | "!=" | "<" | ">" | "<=" | ">=" => (2, false), // logical ops
-            _ => (0, false),                                     // invalid op
+            _ => (0, false),                       // invalid op
         }
     }
 
@@ -379,6 +384,7 @@ impl Stack {
             "**" => self.power(),
             UNARY_MINUS => self.negate(),
             FACTORIAL => self.fact(),
+            PERCENT_ADD | PERCENT_SUB | PERCENT_MUL | PERCENT_DIV => self.percent_op(op),
             "<<" => self.bit_shl(),
             ">>" => self.bit_shr(),
             "~" => self.bit_not(),
@@ -505,6 +511,42 @@ impl Stack {
     function_op!(exp);
     function_op!(ln);
     function_op!(signum);
+
+    fn percent_op(&mut self, op: &str) -> CalcErrorResult {
+        if self.values.len() < 2 {
+            return Err(CalcError::TooManyOps);
+        }
+
+        let v2 = self.values.pop().unwrap();
+        let mut v1 = self.values.pop().unwrap();
+        let v100 = Value::Float(100.0);
+        match op {
+            PERCENT_ADD => {
+                let v2 = v2.into_float()?;
+                let v2 = v2.addition(v100.clone())?;
+                let v2 = v2.divide(v100)?;
+                v1 = v1.multiply(v2)?;
+            }
+            PERCENT_SUB => {
+                let v2 = v2.into_float()?;
+                let v2 = v100.clone().subtract(v2)?;
+                let v2 = v2.divide(v100)?;
+                v1 = v1.multiply(v2)?;
+            }
+            PERCENT_MUL => {
+                let v2 = v2.divide(v100)?;
+                v1 = v1.multiply(v2)?;
+            }
+            PERCENT_DIV => {
+                v1 = v2.divide(v1)?;
+                v1 = v1.multiply(v100)?;
+                v1 = v1.into_float()?;
+            }
+            _ => return Err(CalcError::Unreachable),
+        }
+        self.values.push(v1);
+        Ok(())
+    }
 
     fn iif(&mut self, args: usize) -> CalcErrorResult {
         if args < 3 || self.values.len() < 3 {

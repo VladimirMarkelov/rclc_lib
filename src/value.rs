@@ -445,10 +445,10 @@ macro_rules! sin_cos {
                 _ => {
                     let f = self.into_raw_f64()?;
                     Ok(Value::Float(f.$id()))
-                },
+                }
             }
         }
-    }
+    };
 }
 macro_rules! asin_cos {
     ($id:ident) => {
@@ -466,7 +466,7 @@ macro_rules! asin_cos {
                 }
             }
         }
-    }
+    };
 }
 
 macro_rules! fn_hyper {
@@ -480,7 +480,7 @@ macro_rules! fn_hyper {
                 }
             }
         }
-    }
+    };
 }
 
 impl Default for Value {

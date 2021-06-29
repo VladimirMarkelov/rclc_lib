@@ -2,16 +2,13 @@ use pest::Parser;
 use std::f64::consts::{E, PI};
 
 use crate::errors::*;
-use crate::stack::{Stack, FACTORIAL, STD_FUNCS, UNARY_MINUS};
+use crate::stack::{Stack, FACTORIAL, PERCENT_ADD, PERCENT_DIV, PERCENT_MUL, PERCENT_SUB, STD_FUNCS, UNARY_MINUS};
 use crate::value::*;
 
 #[derive(Parser)]
 #[grammar = "calc.pest"]
 pub struct CalcParser;
 
-// pub const E: f64 = 2.71828182845904523536028747135266249775724709369995957496696763;
-// pub const PI: f64 = 3.14159265358979323846264338327950288419716939937510582097494459;
-// pub const PHI: f64 = 1.61803398874989484820458683436563811772030917980576286213544862;
 pub const PHI: f64 = 1.618_033_988_749_895;
 const LAST_RESULT: &str = "ans";
 
@@ -19,7 +16,6 @@ const LAST_RESULT: &str = "ans";
 pub struct Variable {
     name: String,
     value: Value,
-    // level: usize,
 }
 impl Variable {
     pub fn new(name: &str, value: Value) -> Self {
@@ -152,8 +148,47 @@ macro_rules! process_value {
     };
 }
 
-/// evaluates a given expression and returns either result or error
-pub fn eval(expr: &str, state: &mut CalcState) -> CalcResult {
+struct PrepRule {
+    r: Rule,
+    v: String,
+}
+
+fn fixup_last_prc_op(pairs: &mut Vec<PrepRule>) -> bool {
+    let mut id: usize = pairs.len() - 1;
+    let mut level = 0;
+    while id > 0 {
+        let r = pairs[id].r;
+        let v = pairs[id].v.clone();
+        match r {
+            Rule::close_b => level += 1,
+            Rule::open_b => level -= 1,
+            Rule::operator if level == 0 => match v.as_str() {
+                "+" => {
+                    pairs[id].v = PERCENT_ADD.to_string();
+                    return true;
+                }
+                "-" => {
+                    pairs[id].v = PERCENT_SUB.to_string();
+                    return true;
+                }
+                "*" => {
+                    pairs[id].v = PERCENT_MUL.to_string();
+                    return true;
+                }
+                "/" => {
+                    pairs[id].v = PERCENT_DIV.to_string();
+                    return true;
+                }
+                _ => return false,
+            },
+            _ => {}
+        }
+        id -= 1;
+    }
+    false
+}
+
+fn preprocess_expr(expr: &str) -> Result<Vec<PrepRule>, CalcError> {
     let pairs = match CalcParser::parse(Rule::expr, expr) {
         Ok(p) => p,
         // detailed error from pest parser
@@ -161,15 +196,59 @@ pub fn eval(expr: &str, state: &mut CalcState) -> CalcResult {
         // rcalc own error
         Err(..) => return Err(CalcError::ParseFailed("invalid expression".to_string())),
     };
+    let mut is_last_prc = false;
+    let mut preps: Vec<PrepRule> = Vec::new();
+    for pair in pairs {
+        let rule = pair.as_rule();
+        let val = pair.as_span().as_str().to_lowercase();
+        match rule {
+            Rule::close_b | Rule::arg_sep | Rule::operator => {
+                let is_prc = val == "%";
+                if is_last_prc {
+                    let _ = preps.pop();
+                    if !fixup_last_prc_op(&mut preps) {
+                        preps.push(PrepRule {
+                            r: Rule::operator,
+                            v: "%".to_string(),
+                        });
+                    }
+                }
+                preps.push(PrepRule { r: rule, v: val });
+                is_last_prc = is_prc;
+            }
+            _ => {
+                is_last_prc = val == "%";
+                preps.push(PrepRule { r: rule, v: val });
+            }
+        }
+    }
+    if is_last_prc {
+        let _ = preps.pop();
+        if !fixup_last_prc_op(&mut preps) {
+            preps.push(PrepRule {
+                r: Rule::operator,
+                v: "%".to_string(),
+            });
+        };
+    }
+    Ok(preps)
+}
 
+/// evaluates a given expression and returns either result or error
+pub fn eval(expr: &str, state: &mut CalcState) -> CalcResult {
     state.is_last_value = false;
     state.is_last_func = false;
     state.has_alt = false;
 
+    let rules = preprocess_expr(expr)?;
+    for r in rules.iter() {
+        println!(">> {}", r.v);
+    }
+
     let mut stk = Stack::new();
-    for pair in pairs {
-        let rule = pair.as_rule();
-        let val = pair.as_span().as_str().to_lowercase();
+    for pair in rules {
+        let rule = pair.r;
+        let val = pair.v;
         match rule {
             Rule::int | Rule::fulluint | Rule::hex | Rule::bin | Rule::oct => {
                 process_value!(from_str_integer, stk, state, val);
