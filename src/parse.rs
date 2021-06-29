@@ -241,10 +241,6 @@ pub fn eval(expr: &str, state: &mut CalcState) -> CalcResult {
     state.has_alt = false;
 
     let rules = preprocess_expr(expr)?;
-    for r in rules.iter() {
-        println!(">> {}", r.v);
-    }
-
     let mut stk = Stack::new();
     for pair in rules {
         let rule = pair.r;
