@@ -381,6 +381,18 @@ mod tests {
         assert_eq!(v, Ok(Value::Int(BigInt::from(7))));
         let v = eval("1 + sin cos 2 * 10", &mut state);
         assert_eq!(v, Ok(Value::Float(2.0f64.cos().sin() * 10.0 + 1.0)));
+        let v = eval("20 + 50 %", &mut state);
+        assert_eq!(v, Ok(Value::Int(BigInt::from(30))));
+        let v = eval("40 + 30 - 50 %", &mut state);
+        assert_eq!(v, Ok(Value::Int(BigInt::from(55))));
+        let v = eval("40 + 30 - 50 % - 10", &mut state);
+        assert_eq!(v, Ok(Value::Int(BigInt::from(45))));
+        let v = eval("(40 + 30) - 50 %", &mut state);
+        assert_eq!(v, Ok(Value::Int(BigInt::from(35))));
+        let v = eval("30 * 50 %", &mut state);
+        assert_eq!(v, Ok(Value::Int(BigInt::from(15))));
+        let v = eval("30 / 15 %", &mut state);
+        assert_eq!(v, Ok(Value::Float(200.0)));
     }
 
     #[test]

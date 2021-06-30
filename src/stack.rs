@@ -538,7 +538,7 @@ impl Stack {
                 v1 = v1.multiply(v2)?;
             }
             PERCENT_DIV => {
-                v1 = v2.divide(v1)?;
+                v1 = v1.divide(v2)?;
                 v1 = v1.multiply(v100)?;
                 v1 = v1.into_float()?;
             }
