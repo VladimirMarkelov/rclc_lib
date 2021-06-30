@@ -793,7 +793,7 @@ impl Stack {
     }
 
     fn int_to_base(&mut self, args: usize, base: u32, prefix: &str) -> CalcErrorResult {
-        if base < 2 || base > 36 {
+        if !(2..=36).contains(&base) {
             return Err(CalcError::InvalidAgrument("to_base".to_string(), "base".to_string()));
         }
         if args == 0 || self.values.is_empty() {
@@ -865,7 +865,7 @@ impl Stack {
         let m1 = Value::Float(STEPS as f64).addition(v.clone())?;
         let pwr = v.clone().addition(Value::Float(0.5f64))?;
         let m1 = m1.power(pwr)?;
-        let m2 = Value::Float(-(STEPS as f64)).subtract(v.clone())?;
+        let m2 = Value::Float(-(STEPS as f64)).subtract(v)?;
         let m2 = m2.exp()?;
 
         let res = m1.multiply(m2)?;
@@ -887,14 +887,13 @@ impl Stack {
         let d1 = b.clone().sqr()?;
         let d2 = Value::Int(BigInt::from(4)).multiply(a.clone())?;
         let d2 = d2.multiply(c.clone())?;
-        let d = d1.subtract(d2)?;
-        let d = d.sqrt()?;
+        let det = d1.subtract(d2)?;
+        let det = det.sqrt()?;
+        let b_clone = b.clone().negate()?;
         let q = if b.is_positive() {
-            let t = b.clone().negate()?;
-            t.subtract(d.clone())?
+            b_clone.subtract(det.clone())?
         } else {
-            let t = b.clone().negate()?;
-            t.addition(d.clone())?
+            b_clone.addition(det.clone())?
         };
         let q = q.divide(Value::Int(BigInt::from(2)))?;
         let x1 = q.clone().divide(a.clone())?;
@@ -913,11 +912,10 @@ impl Stack {
         } else {
             format!("{}", c)
         };
-        if d.is_zero() || q.is_zero() {
-            self.has_alt = true;
+        self.has_alt = true;
+        if det.is_zero() || q.is_zero() {
             self.alt_result = format!("{}*x**2{}*x{}=0, x={}", a, bstr, cstr, x1);
         } else {
-            self.has_alt = true;
             self.alt_result = format!("{}*x**2{}*x{}=0, x1={}, x2={}", a, bstr, cstr, x1, x2);
         }
         self.values.push(x1);

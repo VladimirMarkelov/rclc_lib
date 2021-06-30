@@ -150,17 +150,17 @@ fn str_to_bigint(s: &str) -> Result<BigInt, CalcError> {
         if let Ok(bi) = BigInt::from_str_radix(&s[plen..], 16) {
             return Ok(bi);
         }
-        return Err(CalcError::StrToInt(s.to_owned()));
+        return Err(CalcError::StrToInt(s));
     } else if s.starts_with("0o") || s.starts_with("0O") {
         if let Ok(bi) = BigInt::from_str_radix(&s[plen..], 8) {
             return Ok(bi);
         }
-        return Err(CalcError::StrToInt(s.to_owned()));
+        return Err(CalcError::StrToInt(s));
     } else if s.starts_with("0b") || s.starts_with("0B") {
         if let Ok(bi) = BigInt::from_str_radix(&s[plen..], 2) {
             return Ok(bi);
         }
-        return Err(CalcError::StrToInt(s.to_owned()));
+        return Err(CalcError::StrToInt(s));
     }
 
     let pos = s.find(|c: char| c == 'e' || c == 'E').unwrap_or(0);
@@ -457,7 +457,7 @@ macro_rules! asin_cos {
                 Value::Complex(c) => Ok(Value::Complex(c.$id())),
                 _ => {
                     let f = self.into_raw_f64()?;
-                    if f >= -1.0 && f <= 1.0 {
+                    if (-1.0..=1.0).contains(&f) {
                         Ok(Value::Float(f.$id()))
                     } else {
                         let cm = Complex::new(f, 0.0);
@@ -685,7 +685,7 @@ impl Value {
                     || c == 'S'
                     || c == '"'
             })
-            .filter(|s| *s != "")
+            .filter(|s| !(*s).is_empty())
             .collect();
 
         let deg_ex = s.find(|c: char| c == 'd' || c == 'D' || c == '°').is_some();
@@ -819,7 +819,7 @@ impl Value {
                 let fa: f64 = f.abs();
                 // f64 precision is about 19-20 digits,
                 // so it is probable that any f64 > 1e20 is not precise
-                fa >= 1.0 && fa < 1e22 && f64_equal(fa.floor(), fa)
+                (1.0..=1e22).contains(&fa) && f64_equal(fa.floor(), fa)
             }
             Value::Ratio(ref r) => *r.denom() == BigInt::one(),
             Value::Complex(ref c) => {
@@ -827,7 +827,7 @@ impl Value {
                     return false;
                 }
                 let fa: f64 = c.re.abs();
-                fa >= 1.0 && fa < 1e22 && f64_equal(fa.floor(), fa)
+                (1.0..=1e22).contains(&fa) && f64_equal(fa.floor(), fa)
             }
         }
     }
@@ -1288,7 +1288,7 @@ impl Value {
             Value::Complex(c) => Ok(Value::Complex(c.atanh())),
             _ => {
                 let f = self.clone().into_raw_f64()?;
-                if f >= -1.0 && f <= 1.0 {
+                if (-1.0..=1.0).contains(&f) {
                     Ok(Value::Float(f.atanh()))
                 } else {
                     Err(CalcError::InvalidAgrument("atanh".to_owned(), format!("{}", self)))
@@ -1395,7 +1395,7 @@ impl Value {
         } else if v.clone() % BigInt::from(2) == BigInt::zero() {
             Value::Int(BigInt::zero())
         } else {
-            let upto = v.clone().sqrt();
+            let upto = v.sqrt();
             let mut curr = BigInt::from(3);
             let mut r = BigInt::one();
             while curr <= upto {

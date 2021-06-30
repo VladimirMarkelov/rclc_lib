@@ -101,7 +101,7 @@ impl CalcState {
     /// - does not conflict with special variables, like `ans`
     pub fn variable_name_validate(&self, name: &str) -> Result<(), &'static str> {
         let name = name.to_lowercase();
-        if let Some(p) = name.find(|c: char| c >= 'a' && c <= 'z') {
+        if let Some(p) = name.find(|c: char| ('a'..='z').contains(&c)) {
             if p != 0 {
                 return Err("Variable name must start with 'a'..'z'");
             }
@@ -109,7 +109,7 @@ impl CalcState {
             return Err("Variable name must start with 'a'..'z'");
         }
 
-        let p = name.find(|c: char| c != '_' && !(c >= '0' && c <= '9') && !(c >= 'a' && c <= 'z'));
+        let p = name.find(|c: char| c != '_' && !('0'..='9').contains(&c) && !('a'..='z').contains(&c));
         if p.is_some() {
             return Err("Variable name must contain only Latin letters, digits, and underscore");
         }
@@ -260,6 +260,7 @@ pub fn eval(expr: &str, state: &mut CalcState) -> CalcResult {
             }
             Rule::complex => {
                 // distinguish between "1 - 2+i4" and "1 - -2+i4"
+                #[allow(clippy::branches_sharing_code)]
                 if state.is_last_value && val.starts_with('-') {
                     stk.push("-", None)?;
                     let slice = val[1..].to_string();
@@ -291,7 +292,6 @@ pub fn eval(expr: &str, state: &mut CalcState) -> CalcResult {
             Rule::operator => {
                 if val == "+" && !state.is_last_value {
                     state.is_last_value = false;
-                    state.is_last_func = false;
                 } else if val == "-" && (!state.is_last_value || state.is_last_func) {
                     if state.is_last_func {
                         stk.push("(", None)?;
@@ -301,16 +301,14 @@ pub fn eval(expr: &str, state: &mut CalcState) -> CalcResult {
                         stk.push(UNARY_MINUS, None)?;
                     }
                     state.is_last_value = false;
-                    state.is_last_func = false;
                 } else if val == "!" && state.is_last_value {
                     stk.push(FACTORIAL, None)?;
                     state.is_last_value = true;
-                    state.is_last_func = false;
                 } else {
                     stk.push(&val, None)?;
                     state.is_last_value = false;
-                    state.is_last_func = false;
                 }
+                state.is_last_func = false;
             }
             Rule::ident => {
                 if stk.is_func(&val) {
