@@ -638,11 +638,7 @@ impl Stack {
                 // TODO: select better N
                 if i > BigInt::from(100_000) {
                     let s = format!("{}", i);
-                    return Err(CalcError::ArgumentOutOfRange(
-                        "fib".to_string(),
-                        s,
-                        "[0..1_00_000]".to_string(),
-                    ));
+                    return Err(CalcError::ArgumentOutOfRange("fib".to_string(), s, "[0..1_00_000]".to_string()));
                 }
                 if i.is_zero() {
                     self.values.push(Value::Int(BigInt::zero()));
@@ -709,11 +705,7 @@ impl Stack {
 
     fn min(&mut self, args: usize) -> CalcErrorResult {
         self.min_max(args, "min", |v1, v2| {
-            let r = if let Ok(v) = v1.clone().less(v2.clone()) {
-                v
-            } else {
-                Value::Int(BigInt::zero())
-            };
+            let r = if let Ok(v) = v1.clone().less(v2.clone()) { v } else { Value::Int(BigInt::zero()) };
             if r.is_zero() {
                 v2
             } else {
@@ -724,11 +716,7 @@ impl Stack {
 
     fn max(&mut self, args: usize) -> CalcErrorResult {
         self.min_max(args, "max", |v1, v2| {
-            let r = if let Ok(v) = v1.clone().greater(v2.clone()) {
-                v
-            } else {
-                Value::Int(BigInt::zero())
-            };
+            let r = if let Ok(v) = v1.clone().greater(v2.clone()) { v } else { Value::Int(BigInt::zero()) };
             if r.is_zero() {
                 v2
             } else {
@@ -890,28 +878,12 @@ impl Stack {
         let det = d1.subtract(d2)?;
         let det = det.sqrt()?;
         let b_clone = b.clone().negate()?;
-        let q = if b.is_positive() {
-            b_clone.subtract(det.clone())?
-        } else {
-            b_clone.addition(det.clone())?
-        };
+        let q = if b.is_positive() { b_clone.subtract(det.clone())? } else { b_clone.addition(det.clone())? };
         let q = q.divide(Value::Int(BigInt::from(2)))?;
         let x1 = q.clone().divide(a.clone())?;
-        let x2 = if q.is_zero() {
-            Value::Float(0.0f64)
-        } else {
-            c.clone().divide(q.clone())?
-        };
-        let bstr = if b.is_positive() {
-            format!("+{}", b)
-        } else {
-            format!("{}", b)
-        };
-        let cstr = if c.is_positive() {
-            format!("+{}", c)
-        } else {
-            format!("{}", c)
-        };
+        let x2 = if q.is_zero() { Value::Float(0.0f64) } else { c.clone().divide(q.clone())? };
+        let bstr = if b.is_positive() { format!("+{}", b) } else { format!("{}", b) };
+        let cstr = if c.is_positive() { format!("+{}", c) } else { format!("{}", c) };
         self.has_alt = true;
         if det.is_zero() || q.is_zero() {
             self.alt_result = format!("{}*x**2{}*x{}=0, x={}", a, bstr, cstr, x1);
@@ -941,11 +913,7 @@ impl Stack {
             }
 
             self.has_alt = true;
-            let cstr = if c.is_positive() {
-                format!("+{}", c)
-            } else {
-                format!("{}", c)
-            };
+            let cstr = if c.is_positive() { format!("+{}", c) } else { format!("{}", c) };
             let r = c.divide(x.clone())?;
             self.has_alt = true;
             self.alt_result = format!("{}*x{}=0, x={}", x, cstr, r);

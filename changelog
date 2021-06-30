@@ -1,3 +1,16 @@
+rcalclib (0.9.4) unstable; urgency=medium
+
+  * '%' works as percentage operator in some cases: when it is the last symbol
+    in an expression or it is right before closing bracket or another operator
+    'a + n %' = increase 'a' by 'n' percents
+    'a - n %' = decrease 'a' by 'n' percents
+    'a * n %' = calculate 'n' percents of 'a'
+    'a / b %' = calculate how many percents is 'a' of 'b'
+
+  * Clippy fixes and package upgrades
+
+ -- Vladimir Markelov <vmatroskin@gmail.com>  Tue, 29 Jun 2021 20:28:53 -0700
+
 rcalclib (0.9.3) unstable; urgency=medium
 
   * Sqrt for positive common fraction returns common fraction if possible

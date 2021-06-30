@@ -19,10 +19,7 @@ pub struct Variable {
 }
 impl Variable {
     pub fn new(name: &str, value: Value) -> Self {
-        Variable {
-            name: name.to_string(),
-            value,
-        }
+        Variable { name: name.to_string(), value }
     }
 }
 
@@ -207,10 +204,7 @@ fn preprocess_expr(expr: &str) -> Result<Vec<PrepRule>, CalcError> {
                 if is_last_prc {
                     let _ = preps.pop();
                     if !fixup_last_prc_op(&mut preps) {
-                        preps.push(PrepRule {
-                            r: Rule::operator,
-                            v: "%".to_string(),
-                        });
+                        preps.push(PrepRule { r: Rule::operator, v: "%".to_string() });
                     }
                 }
                 preps.push(PrepRule { r: rule, v: val });
@@ -225,10 +219,7 @@ fn preprocess_expr(expr: &str) -> Result<Vec<PrepRule>, CalcError> {
     if is_last_prc {
         let _ = preps.pop();
         if !fixup_last_prc_op(&mut preps) {
-            preps.push(PrepRule {
-                r: Rule::operator,
-                v: "%".to_string(),
-            });
+            preps.push(PrepRule { r: Rule::operator, v: "%".to_string() });
         };
     }
     Ok(preps)
@@ -365,10 +356,7 @@ mod tests {
         let v = eval("(3+9)sin(1)", &mut state);
         assert_eq!(v, Ok(Value::Float(12.0f64 * 1.0f64.sin())));
         let v = eval("1\\2+3\\5", &mut state);
-        assert_eq!(
-            v,
-            Ok(Value::Ratio(BigRational::new(BigInt::from(11), BigInt::from(10))))
-        );
+        assert_eq!(v, Ok(Value::Ratio(BigRational::new(BigInt::from(11), BigInt::from(10)))));
         let v = eval("1+2+i3", &mut state);
         assert_eq!(v, Ok(Value::Complex(Complex::new(3.0, 3.0))));
         let v = eval("1-2+i3", &mut state);

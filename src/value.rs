@@ -641,11 +641,7 @@ impl Value {
             return Self::from_str_integer(st);
         }
 
-        let i = if sp.len() > 2 {
-            str_to_bigint(sp[0])?
-        } else {
-            BigInt::zero()
-        };
+        let i = if sp.len() > 2 { str_to_bigint(sp[0])? } else { BigInt::zero() };
         let n = str_to_bigint(sp[sp.len() - 2])?;
         let d = str_to_bigint(sp[sp.len() - 1])?;
 
@@ -762,9 +758,7 @@ impl Value {
                 if spos > epos {
                     // case when the imaginary number has 'e' power: '..-2.3e-4i'.
                     // need to look for the next '-' or '+' from the end
-                    spos = s[..epos]
-                        .rfind(|c: char| c == '-' || c == '+')
-                        .unwrap_or_else(|| s.len());
+                    spos = s[..epos].rfind(|c: char| c == '-' || c == '+').unwrap_or_else(|| s.len());
                 }
                 if spos >= epos || spos == 0 {
                     let f = str_to_f64(&s[..s.len() - 1])?;
@@ -1461,13 +1455,7 @@ mod tests {
         let v = Value::from_str_ratio("1\\2");
         assert_eq!(v, Ok(Value::Ratio(BigRational::new(BigInt::one(), BigInt::from(2i64)))));
         let v = Value::from_str_ratio("3\\2\\10");
-        assert_eq!(
-            v,
-            Ok(Value::Ratio(BigRational::new(
-                BigInt::from(3i64 * 10i64 + 2i64),
-                BigInt::from(10i64)
-            )))
-        );
+        assert_eq!(v, Ok(Value::Ratio(BigRational::new(BigInt::from(3i64 * 10i64 + 2i64), BigInt::from(10i64)))));
     }
     #[test]
     fn test_angle_str() {

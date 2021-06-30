@@ -16,3 +16,4 @@ The library is used by the project [RionaCalc](https://github.com/VladimirMarkel
 * Regular fractions use `\` to separate its parts. They can be written with integer part or only with numerator and denominator, e.g `1\1\10` == `11\10`
 * Two complex numbers formats: with marker at the end or in the middle. E.g, `1+2i` == `1+i2`. In addition, `j` can be used instead of `i` - but the calculator outputs always with `i`
 * Hexadecimal(starts with `0x`), octal(starts with `0o`), and binary(starts with `0b`) numbers
+* Character `%` can be either a modulo or a percentage operator. It depends on the character position: if `%` is right before the expression end or before closing bracket or before another operator *and* previous operator is one of `+`, `-`, `*`, or `/`, the character is considered a percentage operator
