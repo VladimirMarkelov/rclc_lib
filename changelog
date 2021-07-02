@@ -1,3 +1,10 @@
+rcalclib (0.9.7) unstable; urgency=medium
+
+  * Percentage operator priority lowered. Now it has the same priority as '+'
+    and '-'
+
+ -- Vladimir Markelov <vmatroskin@gmail.com>  Fri, 02 Jul 2021 16:47:05 -0700
+
 rcalclib (0.9.6) unstable; urgency=medium
 
   * Reorder the flow of percentage calculation, so '100+10%' shows '110'

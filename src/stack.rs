@@ -143,11 +143,11 @@ impl Stack {
         match op {
             FACTORIAL => (PRI_IMMEDIATE, false),   // immediate - factorial
             UNARY_MINUS | "~" | "!" => (20, true), // negate, bit NOT
-            PERCENT_ADD | PERCENT_SUB | PERCENT_MUL | PERCENT_DIV => (19, false), // percent operations
             "**" => (17, true),                    // power
             "<<" | ">>" => (15, false),            // bit shifts
             "*" | "/" | "//" | "%" => (12, false), // mult, div, int div, mod
             "+" | "-" => (8, false),               // add, sub
+            PERCENT_ADD | PERCENT_SUB | PERCENT_MUL | PERCENT_DIV => (8, false), // percent operations
             "&" | "^" => (7, false),               // bit AND/XOR
             "|" => (5, false),                     // bit OR
             "&&" => (4, false),                    // bit AND
