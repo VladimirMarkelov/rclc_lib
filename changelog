@@ -1,3 +1,10 @@
+rcalclib (0.9.6) unstable; urgency=medium
+
+  * Reorder the flow of percentage calculation, so '100+10%' shows '110'
+    instead of '110.00000000000002'
+
+ -- Vladimir Markelov <vmatroskin@gmail.com>  Fri, 02 Jul 2021 10:19:42 -0700
+
 rcalclib (0.9.4) unstable; urgency=medium
 
   * '%' works as percentage operator in some cases: when it is the last symbol

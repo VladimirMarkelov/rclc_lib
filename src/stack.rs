@@ -519,19 +519,19 @@ impl Stack {
 
         let v2 = self.values.pop().unwrap();
         let mut v1 = self.values.pop().unwrap();
-        let v100 = Value::Float(100.0);
+        let v100 = Value::Int(BigInt::from(100));
         match op {
             PERCENT_ADD => {
-                let v2 = v2.into_float()?;
+                let v2 = v2.re()?;
                 let v2 = v2.addition(v100.clone())?;
-                let v2 = v2.divide(v100)?;
-                v1 = v1.multiply(v2)?;
+                let v2 = v1.multiply(v2)?;
+                v1 = v2.divide(v100)?;
             }
             PERCENT_SUB => {
-                let v2 = v2.into_float()?;
+                let v2 = v2.re()?;
                 let v2 = v100.clone().subtract(v2)?;
-                let v2 = v2.divide(v100)?;
-                v1 = v1.multiply(v2)?;
+                let v2 = v1.multiply(v2)?;
+                v1 = v2.divide(v100)?;
             }
             PERCENT_MUL => {
                 let v2 = v2.divide(v100)?;
