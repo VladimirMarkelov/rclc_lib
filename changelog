@@ -1,18 +1,10 @@
-rcalclib (0.9.7) unstable; urgency=medium
+rcalclib (1.0.0) unstable; urgency=medium
+
+  * '**' and '^' are synonyms and both mean "raise to power", for bit-wise xor
+    use '@'
 
   * Percentage operator priority lowered. Now it has the same priority as '+'
     and '-'
-
- -- Vladimir Markelov <vmatroskin@gmail.com>  Fri, 02 Jul 2021 16:47:05 -0700
-
-rcalclib (0.9.6) unstable; urgency=medium
-
-  * Reorder the flow of percentage calculation, so '100+10%' shows '110'
-    instead of '110.00000000000002'
-
- -- Vladimir Markelov <vmatroskin@gmail.com>  Fri, 02 Jul 2021 10:19:42 -0700
-
-rcalclib (0.9.4) unstable; urgency=medium
 
   * '%' works as percentage operator in some cases: when it is the last symbol
     in an expression or it is right before closing bracket or another operator
@@ -23,7 +15,7 @@ rcalclib (0.9.4) unstable; urgency=medium
 
   * Clippy fixes and package upgrades
 
- -- Vladimir Markelov <vmatroskin@gmail.com>  Tue, 29 Jun 2021 20:28:53 -0700
+ -- Vladimir Markelov <vmatroskin@gmail.com>  Thu, 08 Jul 2021 18:55:24 -0700
 
 rcalclib (0.9.3) unstable; urgency=medium
 

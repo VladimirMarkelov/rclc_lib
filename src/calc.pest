@@ -19,7 +19,7 @@ degreefloat = @{ (rawfloat | uint) ~ (^"d" | "°") }
 open_b = { "(" }
 close_b = { ")" }
 arg_sep = { ";" }
-operator = { "//" | "%%" | "%/" | "**" | "+" | "-" | "/" | "*" | "^" | "&&" | "||" | "&" | "|" | "~" | "%" | "~" | "<<" | ">>" | "<=" | ">=" | "!=" | "==" | "!" | ">" | "<" }
+operator = { "//" | "%%" | "%/" | "**" | "+" | "-" | "/" | "*" | "^" | "&&" | "||" | "@" | "&" | "|" | "~" | "%" | "~" | "<<" | ">>" | "<=" | ">=" | "!=" | "==" | "!" | ">" | "<" }
 
 eoi = _{ !ANY }
 expr = _{ SOI ~ (ident | bin | hex | oct | fulldegree | degreefloat | ratio | complex | float | fulluint | int | open_b | close_b | arg_sep | operator)* ~ eoi }
