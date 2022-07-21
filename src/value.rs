@@ -143,8 +143,8 @@ fn ratio_to_f64(r: &BigRational) -> Result<f64, CalcError> {
 }
 
 fn str_to_bigint(s: &str) -> Result<BigInt, CalcError> {
-    let s = s.replace("_", "");
-    let s = s.replace(" ", "");
+    let s = s.replace('_', "");
+    let s = s.replace(' ', "");
     let plen = "0x".len();
     if s.starts_with("0x") || s.starts_with("0X") {
         if let Ok(bi) = BigInt::from_str_radix(&s[plen..], 16) {
@@ -618,8 +618,8 @@ impl Value {
     /// For convenience digits can be separated with underscores:
     /// `3_005.245_1` is the same as `3005.2451`
     pub fn from_str_float(s: &str) -> CalcResult {
-        let s = s.replace("_", "");
-        let s = s.replace(" ", "");
+        let s = s.replace('_', "");
+        let s = s.replace(' ', "");
         let s = s.replace(',', ".");
         let f = str_to_f64(&s)?;
         Ok(Value::Float(f))
@@ -633,8 +633,8 @@ impl Value {
     /// For convenience digits can be separated with underscores:
     /// `3_005\1_988` is the same as `3005\1988`
     pub fn from_str_ratio(st: &str) -> CalcResult {
-        let s = st.replace("_", "");
-        let s = s.replace(" ", "");
+        let s = st.replace('_', "");
+        let s = s.replace(' ', "");
         let sp: Vec<&str> = s.splitn(3, '\\').collect();
 
         if sp.len() == 1 {
@@ -667,8 +667,8 @@ impl Value {
     /// For convenience digits can be separated with underscores:
     /// `3_005.245_1d` is the same as `3005.2451d`
     pub fn from_str_angle(s: &str) -> CalcResult {
-        let s = s.replace("_", "");
-        let s = s.replace(",", ".");
+        let s = s.replace('_', "");
+        let s = s.replace(',', ".");
         let parts: Vec<&str> = s
             .split(|c: char| {
                 c == 'd'
@@ -737,8 +737,8 @@ impl Value {
     /// For convenience digits can be separated with underscores:
     /// `3_005.245_1d` is the same as `3005.2451d`
     pub fn from_str_complex(s: &str) -> CalcResult {
-        let s = s.replace("_", "");
-        let s = s.replace(",", ".");
+        let s = s.replace('_', "");
+        let s = s.replace(',', ".");
         if let Some(pos) = s.find(|c: char| c == 'i' || c == 'I' || c == 'j' || c == 'J') {
             if pos == 0 {
                 // only imaginary case: -i3.2e-5
@@ -753,12 +753,12 @@ impl Value {
                 Ok(Value::Complex(Complex::new(0.0, f)))
             } else if pos == s.len() - 1 {
                 // harder case: -2.1e-4-3.2-e5i
-                let epos = s.rfind(|c: char| c == 'e' || c == 'E').unwrap_or_else(|| s.len());
-                let mut spos = s.rfind(|c: char| c == '-' || c == '+').unwrap_or_else(|| s.len());
+                let epos = s.rfind(|c: char| c == 'e' || c == 'E').unwrap_or(s.len());
+                let mut spos = s.rfind(|c: char| c == '-' || c == '+').unwrap_or(s.len());
                 if spos > epos {
                     // case when the imaginary number has 'e' power: '..-2.3e-4i'.
                     // need to look for the next '-' or '+' from the end
-                    spos = s[..epos].rfind(|c: char| c == '-' || c == '+').unwrap_or_else(|| s.len());
+                    spos = s[..epos].rfind(|c: char| c == '-' || c == '+').unwrap_or(s.len());
                 }
                 if spos >= epos || spos == 0 {
                     let f = str_to_f64(&s[..s.len() - 1])?;
@@ -831,7 +831,7 @@ impl Value {
     basic_op!(multiply, *, false);
 
     div_op!(divide, /, true);
-    div_op!(reminder, %, false);
+    div_op!(remainder, %, false);
 
     /// Divides and truncates the result.
     /// Note: the result is always big integer number even if
@@ -1112,7 +1112,7 @@ impl Value {
                 if cb.clone() * cb.clone() * cb.clone() == *i {
                     return Ok(Value::Int(cb));
                 }
-                let f = int_to_f64(&i)?;
+                let f = int_to_f64(i)?;
                 Ok(Value::Float(f.cbrt()))
             }
         }
@@ -1536,7 +1536,7 @@ mod tests {
         assert_eq!(f, Ok(Value::Float(123.0)));
         let f = Value::into_complex(v.clone());
         assert_eq!(f, Ok(Value::Complex(Complex::new(123.0, 0.0))));
-        let f = Value::into_ratio(v.clone());
+        let f = Value::into_ratio(v);
         assert_eq!(f, Ok(Value::Ratio(BigRational::new(BigInt::from(123), BigInt::one()))));
     }
     #[test]
@@ -1546,7 +1546,7 @@ mod tests {
         assert_eq!(f, Ok(Value::Int(BigInt::from(12))));
         let f = Value::into_complex(v.clone());
         assert_eq!(f, Ok(Value::Complex(Complex::new(12.5, 0.0))));
-        let f = Value::into_ratio(v.clone());
+        let f = Value::into_ratio(v);
         assert_eq!(f, Ok(Value::Ratio(BigRational::new(BigInt::from(25), BigInt::from(2)))));
     }
     #[test]
@@ -1556,7 +1556,7 @@ mod tests {
         assert_eq!(f, Ok(Value::Int(BigInt::from(2))));
         let f = Value::into_complex(v.clone());
         assert_eq!(f, Ok(Value::Complex(Complex::new(2.5, 0.0))));
-        let f = Value::into_float(v.clone());
+        let f = Value::into_float(v);
         assert_eq!(f, Ok(Value::Float(2.5)));
     }
     #[test]
@@ -1566,7 +1566,7 @@ mod tests {
         assert_eq!(f, Ok(Value::Int(BigInt::from(2))));
         let f = Value::into_ratio(v.clone());
         assert_eq!(f, Ok(Value::Ratio(BigRational::new(BigInt::from(5), BigInt::from(2)))));
-        let f = Value::into_float(v.clone());
+        let f = Value::into_float(v);
         assert_eq!(f, Ok(Value::Float(2.5)));
     }
     #[test]
@@ -1817,14 +1817,14 @@ mod tests {
         assert_eq!(a, Ok(Value::Int(BigInt::from(3))));
         let a = v.clone().ceil();
         assert_eq!(a, Ok(Value::Int(BigInt::from(3))));
-        let a = v.clone().floor();
+        let a = v.floor();
         assert_eq!(a, Ok(Value::Int(BigInt::from(2))));
         let v = Value::Ratio(BigRational::new(BigInt::from(9), BigInt::from(4)));
         let a = v.clone().round();
         assert_eq!(a, Ok(Value::Int(BigInt::from(2))));
         let a = v.clone().ceil();
         assert_eq!(a, Ok(Value::Int(BigInt::from(3))));
-        let a = v.clone().floor();
+        let a = v.floor();
         assert_eq!(a, Ok(Value::Int(BigInt::from(2))));
     }
     #[test]
@@ -1862,7 +1862,7 @@ mod tests {
     fn test_exp() {
         let v = Value::Float(0.5);
         let r = v.clone().exp().unwrap().ln();
-        assert_eq!(Ok(v.clone()), r);
+        assert_eq!(Ok(v), r);
     }
     #[test]
     fn test_trigonometry() {
@@ -1879,7 +1879,7 @@ mod tests {
         assert_eq!(r, Ok(Value::Float(-4.0)));
         let r = v.clone().re();
         assert_eq!(r, Ok(Value::Float(3.0)));
-        let r = v.clone().norm();
+        let r = v.norm();
         assert_eq!(r, Ok(Value::Float(5.0)));
     }
 }
