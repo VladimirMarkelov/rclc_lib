@@ -380,7 +380,7 @@ impl Stack {
             "+" => self.addition(),
             "-" => self.subtract(),
             "//" => self.div_int(),
-            "%" => self.reminder(),
+            "%" => self.remainder(),
             "**" | "^" => self.power(),
             UNARY_MINUS => self.negate(),
             FACTORIAL => self.fact(),
@@ -475,7 +475,7 @@ impl Stack {
     two_arg_op!(bit_shr);
     two_arg_op!(power);
     two_arg_op!(divide);
-    two_arg_op!(reminder);
+    two_arg_op!(remainder);
     two_arg_op!(div_int);
     two_arg_op!(addition);
     two_arg_op!(subtract);
