@@ -5,7 +5,7 @@ WHITESPACE = _{ " " | "\t" }
 COMMENT = { "#" ~ ANY* }
 
 int = { uint }
-fulluint = @{ ASCII_DIGIT ~ ^"e" ~ "+"? ~ uint }
+fulluint = @{ ASCII_DIGIT+ ~ ^"e" ~ "+"? ~ uint }
 hex = @{ "0" ~ ^"x" ~ ASCII_HEX_DIGIT+ }
 oct = @{ "0" ~ ^"o" ~ ASCII_OCT_DIGIT+ }
 bin = @{ "0" ~ ^"b" ~ ASCII_BIN_DIGIT+ }
